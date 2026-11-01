@@ -1,128 +1,419 @@
 # NOSH Egg Segmentation & Video Tracking
 
-A reproducible four-task computer-vision project:
-1. Generate pseudo-ground-truth egg masks using pretrained SAM/SAM 2.
-2. Build a classical OpenCV segmentation baseline and tune on a leakage-safe development split.
-3. Evaluate the frozen algorithm against SAM masks.
-4. Segment and track eggs in a video with persistent IDs.
+A computer-vision project developed for the NOSH CV Internship Task. The project covers egg segmentation using pretrained Segment Anything Model (SAM) masks, classical OpenCV-based segmentation, quantitative evaluation, and video-based egg detection and tracking.
 
-> **Important:** SAM masks are pseudo-ground-truth, not manually verified ground truth. Review overlays and correct bad masks where possible. Do not tune on the evaluation split.
+The project is organized around four tasks:
 
-## Project structure
+1. Generate egg segmentation pseudo-labels using SAM.
+2. Develop and experiment with classical OpenCV segmentation methods.
+3. Evaluate the final segmentation pipeline against SAM-generated reference masks.
+4. Detect and track eggs in a video using a classical computer-vision pipeline.
+
+> **Important:** SAM-generated masks are pseudo-ground-truth labels, not manually verified ground truth. Some reference masks contain defects, including inverted masks. Therefore, reported metrics measure agreement with the generated references and should not be interpreted as definitive segmentation accuracy.
+
+## Project Links
+
+- **GitHub Repository:** [nosh-egg-segmentation](https://github.com/dhrupad1304/nosh-egg-segmentation)
+- **Final Project Report:** [View PDF Report](reports/final_report.pdf)
+- **Video Reference:** [Google Drive Video](https://drive.google.com/file/d/1MYhljXmk2cjCzZFSpQ-AB04evRMmb1pN/view?usp=drive_link)
+
+## Project Structure
 
 ```text
-.
+nosh-egg-segmentation/
+│
+├── data/
+│   └── Dataset and prepared data
+│
+├── outputs/
+│   ├── classical_baseline/
+│   ├── classical_eval/
+│   ├── classical_exp1/
+│   ├── classical_exp2/
+│   ├── classical_exp3/
+│   ├── classical_exp3_dev/
+│   ├── classical_exp3_eval/
+│   ├── classical_exp4_dev/
+│   ├── classical_exp5_dev/
+│   ├── classical_exp6_dev/
+│   ├── classical_exp7_dev/
+│   ├── classical_exp7_eval/
+│   ├── classical_exp8_dev/
+│   ├── exp3_exp4_comparison/
+│   ├── exp4_exp8_comparison/
+│   ├── exp7_eval_run.csv
+│   └── exp8_run_log.csv
+│
+├── reports/
+│   ├── evaluation_baseline/
+│   ├── evaluation_exp3/
+│   ├── final_report.pdf
+│   └── report_template.md
+│
 ├── scripts/
+│   ├── classical_segment.py
+│   ├── classical_segment_baseline.py
+│   ├── classical_segment_exp3.py
+│   ├── classical_segment_exp3_dev.py
+│   ├── classical_segment_exp4.py
+│   ├── classical_segment_exp5.py
+│   ├── classical_segment_exp6.py
+│   ├── classical_segment_exp7.py
+│   ├── classical_segment_exp8.py
+│   ├── evaluate.py
 │   ├── prepare_data.py
 │   ├── sam_segment.py
-│   ├── classical_segment.py
-│   ├── evaluate.py
 │   └── track_video.py
-├── notebooks/                 # Put Colab notebooks here if desired
-├── data/                      # Local-only; do not commit datasets
-├── outputs/
-├── reports/
-│   └── report_template.md
+│
 ├── experiments.csv
+├── egg_final_data.zip
+├── prepared.zip
+├── prepared_data.zip
 ├── requirements.txt
+├── README.md
 └── .gitignore
 ```
 
-## 1. Environment
+The repository preserves the segmentation scripts, experiment iterations, evaluation outputs, and final report. Dataset archives and generated outputs are included as available in the repository.
+
+## Technologies Used
+
+- Python
+- OpenCV
+- Segment Anything Model (SAM)
+- NumPy
+- Pandas
+- Matplotlib
+- Scikit-image
+- SciPy
+- Git and GitHub
+
+## Task 1 — SAM-Based Egg Segmentation
+
+The first task focuses on generating segmentation masks for egg images using a pretrained Segment Anything Model.
+
+The SAM mask-generation workflow includes:
+
+- Loading the pretrained SAM model.
+- Generating candidate segmentation masks.
+- Filtering candidates using area and shape characteristics.
+- Selecting egg-like regions based on geometric properties.
+- Removing duplicate or unsuitable masks.
+- Saving segmentation masks for subsequent evaluation.
+
+The mask-generation process uses characteristics such as:
+
+- Area
+- Solidity
+- Ellipse-fit quality
+- Border contact
+- Overlap with other candidate masks
+
+### SAM Configuration
+
+The report documents the following SAM ViT-B generator settings:
+
+| Parameter | Value |
+|---|---:|
+| Points per side | 32 |
+| Predicted IoU threshold | 0.90 |
+| Stability score threshold | 0.92 |
+| Minimum region area | 500 pixels |
+
+SAM-generated masks were used as reference labels for the classical segmentation experiments.
+
+### Limitations
+
+SAM can select incorrect objects or generate unsuitable masks in cluttered scenes. Some reference masks were inverted or otherwise defective.
+
+These issues affect the reliability of the evaluation metrics.
+
+## Task 2 — Classical OpenCV Segmentation
+
+The second task focuses on developing a classical computer-vision segmentation pipeline without relying on a trained egg-segmentation model.
+
+Several experiments were conducted to investigate different segmentation strategies and improve the quality of the predicted masks.
+
+### Experiment 7 — Final Segmentation Approach
+
+Experiment 7 uses candidate generation, egg-likeness scoring, and GrabCut refinement.
+
+The pipeline includes:
+
+1. Generate threshold-based candidates using color information from Lab and HSV color spaces.
+2. Evaluate different thresholding polarities.
+3. Apply morphological operations to clean candidate masks.
+4. Score candidates using shape and appearance characteristics.
+5. Select suitable egg-like regions.
+6. Refine the selected region using GrabCut.
+7. Apply final mask cleanup.
+
+The candidate scoring process considers:
+
+- Solidity
+- Ellipse-fit quality
+- Edge strength
+- Ring contrast
+- Border penalties
+
+The final refinement uses foreground and probable-background regions to improve the segmentation boundary.
+
+### Experimentation
+
+Multiple experiments were conducted to investigate:
+
+- Color thresholding
+- Otsu thresholding
+- Morphological operations
+- Contour selection
+- Candidate scoring
+- GrabCut refinement
+- Mask cleanup
+
+The experiment scripts and CSV logs are preserved in the repository.
+
+Development data was used for experimentation. The evaluation split was kept separate from development tuning.
+
+## Task 3 — Quantitative Evaluation
+
+The final segmentation pipeline was evaluated against SAM-generated pseudo-ground-truth masks.
+
+### Final Results
+
+| Split | Images | Mean IoU | Mean Dice |
+|---|---:|---:|---:|
+| Development (DEV) | 88 | 0.4636 | 0.5679 |
+| Evaluation (EVAL) | 22 | 0.5394 | 0.6449 |
+| **Total** | **110** | — | — |
+
+### Evaluation Metrics
+
+The project uses the following metrics:
+
+**Intersection over Union (IoU)**
+
+Measures the overlap between the predicted mask and the reference mask.
+
+\[
+IoU = \frac{|P \cap G|}{|P \cup G|}
+\]
+
+**Dice Coefficient**
+
+Measures the similarity between the predicted mask and the reference mask.
+
+\[
+Dice = \frac{2|P \cap G|}{|P| + |G|}
+\]
+
+Where:
+
+- \(P\) represents the predicted segmentation mask.
+- \(G\) represents the reference mask.
+
+### Evaluation Interpretation
+
+The evaluation results represent agreement with SAM-generated pseudo-labels.
+
+Some reference masks contain defects, including inverted masks. These defects can reduce the measured IoU and Dice scores even when the predicted mask identifies the egg region reasonably well.
+
+The evaluation results should therefore be interpreted alongside qualitative inspection of the masks.
+
+### Observed Segmentation Challenges
+
+The final pipeline has limitations in:
+
+- Low-contrast egg boundaries
+- Shadows and reflections
+- Multiple eggs in a single image
+- Eggs touching image borders
+- Defective reference masks
+- Cases where the largest-component assumption is unsuitable
+
+The current implementation may miss multiple eggs when they are present in the same image.
+
+## Task 4 — Video Egg Detection and Tracking
+
+The fourth task focuses on detecting and tracking eggs in a video using classical computer-vision techniques.
+
+The input video contains a fixed-camera view of eggs moving through the scene.
+
+### Video Information
+
+| Property | Value |
+|---|---|
+| Duration | 60 seconds |
+| Frame rate | 24 FPS |
+| Total frames | 1,440 |
+| Resolution | 640 × 360 |
+| Camera | Fixed camera |
+
+Eggs are visible approximately between 9.5 seconds and 41.5 seconds in the video.
+
+### Detection Pipeline
+
+The detection process uses:
+
+- Brightness and saturation thresholds
+- Morphological opening and closing
+- Connected-component analysis
+- Area filtering
+- Solidity filtering
+- Ellipse-fit filtering
+- Reflection rejection
+
+The pipeline also uses fallback thresholding and filtering methods to handle challenging lighting conditions.
+
+### Tracking Pipeline
+
+The tracker uses greedy nearest-centroid matching to associate detections across frames.
+
+The process includes:
+
+1. Detect egg candidates in each frame.
+2. Calculate the centroid of each detected object.
+3. Associate detections with existing tracks based on centroid distance.
+4. Assign persistent IDs to tracked objects.
+5. Display bounding boxes and tracking labels.
+6. Retain tracks temporarily when detections are missed.
+
+### Tracking Results and Limitations
+
+The pipeline detects eggs in many frames, but the tracking results are not fully stable.
+
+Observed limitations include:
+
+- Reflections can produce false detections.
+- Missed detections can interrupt tracking.
+- Occlusion can affect object association.
+- Tracking IDs may change over time.
+- The tracker may retain an object's last position during temporary detection loss.
+
+The current tracker is a classical baseline and is not intended to provide robust multi-object tracking under all conditions.
+
+## Dataset and Data Preparation
+
+The segmentation dataset contains 110 images with a resolution of 640 × 640 pixels.
+
+The project uses a development and evaluation split:
+
+| Split | Images |
+|---|---:|
+| Development | 88 |
+| Evaluation | 22 |
+| Total | 110 |
+
+The data preparation workflow groups augmented Roboflow image variants to reduce the possibility of data leakage between development and evaluation data.
+
+The grouping heuristic is not guaranteed to identify every near-duplicate image.
+
+## Reproducibility
+
+The repository contains the source scripts and experiment outputs used throughout the project.
+
+The main scripts are:
+
+| Script | Description |
+|---|---|
+| `prepare_data.py` | Dataset preparation |
+| `sam_segment.py` | SAM-based segmentation |
+| `classical_segment.py` | Classical segmentation |
+| `classical_segment_baseline.py` | Baseline implementation |
+| `classical_segment_exp3.py` – `classical_segment_exp8.py` | Experiment iterations |
+| `evaluate.py` | Evaluation metrics |
+| `track_video.py` | Video detection and tracking |
+
+The experiment history is documented in `experiments.csv` and the output CSV files.
+
+## Environment Setup
 
 Python 3.10 or 3.11 is recommended.
 
+Create and activate a virtual environment:
+
 ```bash
 python -m venv .venv
-source .venv/bin/activate       # Windows: .venv\\Scripts\\activate
+```
+
+On macOS or Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+On Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+Install the dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-For SAM ViT-H, install PyTorch matching your CUDA runtime from https://pytorch.org/get-started/locally/ and download the official checkpoint from the Segment Anything repository. Put it at `checkpoints/sam_vit_h_4b8939.pth`.
+For SAM-based processing, install PyTorch compatible with the available hardware and obtain the required pretrained SAM checkpoint.
 
-## 2. Prepare the Roboflow export
+Large model weights are not included in the repository.
 
-Unzip the dataset export. The script searches recursively for image files and groups Roboflow augmented variants by the original stem before `.rf.`. It creates a deterministic 80:20 split.
+## Deliverables
 
-```bash
-python scripts/prepare_data.py /path/to/unzipped/export --out data/prepared --seed 42
-```
+The project deliverables include:
 
-Outputs:
-- `data/prepared/images/`
-- `data/prepared/split.json`
+- Public GitHub repository containing the source code.
+- Final PDF report.
+- Segmentation experiment scripts.
+- Evaluation results and experiment logs.
+- Video detection and tracking implementation.
+- Documentation of methods, results, and limitations.
 
-The grouping heuristic is not guaranteed to identify every near-duplicate. Inspect the split and, if needed, add perceptual-hash grouping before relying on evaluation results.
+### Final Report
 
-## 3. Task 1 — SAM pseudo masks
+The complete report contains the methodology, experimental analysis, quantitative evaluation, qualitative observations, tracking results, and limitations.
 
-Run on a GPU-enabled Colab or compatible local machine:
+[**View the Final Project Report (PDF)**](reports/final_report.pdf)
 
-```bash
-python scripts/sam_segment.py \
-  --images data/prepared/images \
-  --split data/prepared/split.json \
-  --checkpoint checkpoints/sam_vit_h_4b8939.pth \
-  --model-type vit_h \
-  --output outputs/sam
-```
+### Video
 
-This uses a center-point prompt by default and saves masks and overlays. Review `outputs/sam/overlays/`; fix bad masks by editing prompts or correcting masks. SAM can select the wrong object in cluttered scenes.
+[**Open the Google Drive Video**](https://drive.google.com/file/d/1MYhljXmk2cjCzZFSpQ-AB04evRMmb1pN/view?usp=drive_link)
 
-## 4. Task 2 — Classical baseline
+## AI Tools Disclosure
 
-```bash
-python scripts/classical_segment.py \
-  --images data/prepared/images \
-  --masks outputs/sam/masks \
-  --split data/prepared/split.json \
-  --output outputs/classical \
-  --experiments experiments.csv
-```
+AI assistance was used during the development and documentation process. The implementation, experiments, and reported results were reviewed by the project author.
 
-The baseline combines color cues, Otsu thresholding, morphology, contour selection, and hole filling. The dev split is used for experimentation only. Change parameters in the script or add experiments, then rerun. Keep failed experiments in `experiments.csv`.
+The reported metrics correspond to the project evaluation against SAM-generated pseudo-labels. The author is responsible for understanding and explaining the methods, implementation, results, and limitations.
 
-## 5. Task 3 — Evaluation
+## Interview Preparation
 
-After freezing the pipeline:
+The following topics are relevant to the project:
 
-```bash
-python scripts/evaluate.py \
-  --images data/prepared/images \
-  --gt outputs/sam/masks \
-  --pred outputs/classical/predictions \
-  --split data/prepared/split.json \
-  --output reports/evaluation
-```
+- Segment Anything Model (SAM)
+- Prompt-based segmentation
+- HSV and Lab color spaces
+- Otsu thresholding
+- Morphological operations
+- Connected-component analysis
+- Contour selection
+- GrabCut segmentation
+- IoU and Dice metrics
+- Data leakage and grouped data splitting
+- Centroid-based tracking
+- Object association
+- Reflection rejection
+- Segmentation and tracking failure analysis
 
-Metrics include IoU, Dice, precision, recall, and boundary F-score. The script produces a CSV, IoU histogram, and worst-case gallery. Review qualitative results and write an honest error analysis.
+## Conclusion
 
-## 6. Task 4 — Video tracking
+This project explores egg segmentation and video tracking using classical computer-vision methods and pretrained segmentation models.
 
-Download the assigned video yourself and run:
+The work includes SAM-based pseudo-label generation, classical segmentation experimentation, quantitative evaluation, and a video detection and tracking baseline.
 
-```bash
-python scripts/track_video.py \
-  --video /path/to/egg_video.mp4 \
-  --output outputs/tracked_eggs.mp4
-```
+The final results demonstrate the challenges of segmentation against imperfect reference masks and the limitations of classical tracking in scenes involving reflections, occlusion, and missed detections.
 
-The tracker uses connected components, centroid-distance matching, and Hungarian assignment when SciPy is available. It assigns IDs and draws colored masks. This baseline may need threshold tuning and watershed splitting for touching eggs.
+The repository preserves the implementation, experiment history, outputs, and final report for review and reproducibility.
 
-Upload the resulting video to a public Google Drive link and put that link in the final report.
+---
 
-## 7. Deliverables
-
-- Public GitHub repository containing source code, setup instructions, and PDF report.
-- PDF report with methods, experiment log, quantitative and qualitative evaluation, limitations, AI-tool disclosure, and public Drive video link.
-- Public Drive link to the video tracking output.
-- Do not commit source dataset, private data, model weights, or large generated outputs unless explicitly permitted.
-
-## AI-tools disclosure
-
-Example disclosure (edit to match actual use): “AI assistance was used to help scaffold code and documentation. I reviewed, tested, and modified the implementation and can explain the methods. All reported metrics were generated by running the project on the supplied data.”
-
-## Interview topics
-
-Be prepared to explain: SAM prompts and mask selection; HSV/LAB color spaces; Otsu thresholding; morphology; connected components; IoU/Dice; data leakage and grouped splits; Hungarian matching; tracking failures; and why SAM masks are pseudo-labels rather than verified truth.
-# nosh-egg-segmentation
+**Project:** NOSH Egg Segmentation & Video Tracking  
+**Author:** Dhrupad Gupta
