@@ -1,0 +1,2 @@
+experiment,change,reason,parameters,dev_iou,dev_dice,decision,notes
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.4568677061510483,0.5937824071483037,review,Starter baseline; tune on dev only

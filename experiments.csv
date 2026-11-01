@@ -1,0 +1,14 @@
+experiment,change,reason,parameters,dev_iou,dev_dice,decision,notes
+baseline,LAB/HSV + Otsu + morphology,Initial classical baseline,"see scripts/classical_segment.py",,,,Pending run
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.3277560501502061,0.43060469928865575,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.22697579956765493,0.32518268612585993,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.2721936540117374,0.3526993970808398,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.471900477812244,0.5875490145822734,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.5445012092354072,0.6598798455418398,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.5445012092354072,0.6598798455418398,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.47106031022732964,0.5849438518470861,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.44038550810152394,0.5725758059296696,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.3671839459604916,0.4788798214816323,review,Starter baseline; tune on dev only
+exp7,Multiple candidates + scoring + GrabCut refinement,Handle diverse scenes using candidate selection,Lab/Otsu/Saturation/GrabCut candidates; solidity + ellipse + edge + contrast score,0.4635941013500041,0.5679073471140984,review,Heuristic candidate scoring; compare against Exp 3
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.5445012092354072,0.6598798455418398,review,Starter baseline; tune on dev only
+baseline,LAB/HSV Otsu + morphology + largest contour,Initial reproducible classical baseline,"kernel=max(3,min_dim//80 odd); close iterations=2",0.4692642662781953,0.5798013674897127,review,Starter baseline; tune on dev only
